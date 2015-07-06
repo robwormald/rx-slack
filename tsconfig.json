@@ -1,0 +1,10 @@
+{
+    "files": [
+        "slackbot.ts"
+    ],
+    "compilerOptions": {
+        "target": "ES5",
+        "module": "commonjs",
+        "sourceMap": true
+    }
+}
