@@ -1,105 +1,26 @@
-/// <reference path="typings/rx/rx" />
-/// <reference path="typings/ws/ws" />
+import {SlackSocket} from './lib/SlackSocket'
+
+console.log(SlackSocket)
 
 
-import Rx = require('rx');
-import RxNode = require('rx-node');
-import Fetch = require('node-fetch');
-import ws = require('ws');
+let connectionStream = SlackSocket.create(process.env.SLACK_TOKEN);
 
-//slack events
+let slackSocket;
 
-interface SlackEvent {
-    type: string;
-    user?:string;
-    message?:string;
-    data?:any;
-}
-const EV_USER_TYPING = 'user_typing';
-const EV_MESSAGE = 'message';
-const EV_HELLO = 'hello';
-
-const isMessage = (event) => event.type === EV_MESSAGE;
-
-
-const getSlackUrl = (method, token) => `https://slack.com/api/${method}?token=${token}`
-
-const startConnection = (token) => {
-    return Rx.Observable
-        .fromPromise(Fetch(getSlackUrl('rtm.start', token)))
-        .flatMap((res) => res.json())
-        .map((connectionData) => new SlackSocket(connectionData))
-}
-
-class SlackSocket {
-    connectionData: any;
-    messages: Rx.Observable<SlackEvent>;
-    _subject: Rx.Subject<SlackEvent|SlackEvent>
-    constructor(connectionDetails, openObserver?:Rx.Observer<any>, closeObserver?:Rx.Observer<any>){
-    //create socket
-    const socket = new ws(connectionDetails.url);
-    
-    //handler for connection opening
-    const openHandler = (event) => {
-        openObserver.onNext(event);
-        openObserver.onCompleted();
-        socket.removeListener('open', openHandler);
-    }
-    
-    //incoming messages 
-    const messageStream= Rx.Observable.create((gen:Rx.Observer<SlackEvent>) => {
-        
-        const messageHandler = (message) => gen.onNext(JSON.parse(message.data));
-        const errorHandler = (error) => gen.onError(error);
-        const closeHandler = (event) => gen.onCompleted();
-        
-        openObserver && socket.addEventListener('open',openHandler);
-        
-        socket.addEventListener('message', messageHandler);
-        socket.addEventListener('error',errorHandler);
-        socket.addEventListener('close',closeHandler);
-        
-        return () => {
-            socket.removeListener('message',messageHandler);
-            socket.removeListener('error',errorHandler);
-            socket.removeListener('close',closeHandler);
-        }
-        
-    });
-    
-    const responseStream = Rx.Observer.create((message:SlackEvent) => {
-        socket.send(message);
-    })
-    
-    console.log(connectionDetails)
-    
-    this._subject = Rx.Subject.create(responseStream, messageStream);
-    this.connectionData = connectionDetails;
-    this.botId = `<@${connectionDetails.self.id}>`
-    this.messages = this._subject.filter(isMessage);
-    this.mentions = this.messages.filter((message) => message.text.indexOf(this.botId) > -1)
-   }
-}
-
-
-let inputStream = RxNode.fromReadableStream(process.stdin);
-
-inputStream.subscribe((v) => console.log(v))
-
-
-
-startConnection(process.env.SLACK_TOKEN)
-  .forEach((slackSocket:SlackSocket) => {
-      
-      slackSocket.messages.subscribe((message) => {
-          console.log(message);
-      });
-      
-      slackSocket.mentions.subscribe((mention) =>{
-          console.log('@bot:',mention)
-      })
-      
+let botMessageStream = connectionStream
+  .flatMap((socket) => {
+    slackSocket = socket;
+    return socket.mentions;
   })
-
+  .forEach((message) => {
+    console.log('message',message)
+    slackSocket.send({
+      id: 1,
+      type: 'message',
+      channel: message.channel,
+      text: 'hello world'
+    })
+  })
   
+
 
