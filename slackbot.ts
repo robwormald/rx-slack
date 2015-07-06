@@ -8,19 +8,19 @@ import ws = require('ws');
 
 const SLACK_URL = (method, token) => `https://slack.com/api/${method}?token=${token}`
 
-const openConnection = (slackDetails) => {
+const getBotUrl = (slackDetails) => {
     console.log(slackDetails.url);
     return slackDetails.url
 }
     
 
-function getBotUrl(token){
+function connect(token){
     let startConnection = Fetch(SLACK_URL('rtm.start',token));
     return Rx.Observable.fromPromise(startConnection.then((res) => res.json()));
 }
 
-getBotUrl(process.env.SLACK_TOKEN)
-  .flatMapLatest(openConnection)
+connect(process.env.SLACK_TOKEN)
+  .flatMapLatest(getBotUrl)
   .subscribe(function(res){
     console.log(res);
 },function(err){
