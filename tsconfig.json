@@ -1,6 +1,7 @@
 {
     "files": [
-        "slackbot.ts"
+        "slackbot.ts",
+        "lib/SlackSocket.ts"
     ],
     "compilerOptions": {
         "target": "ES5",
