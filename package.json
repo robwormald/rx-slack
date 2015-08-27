@@ -1,0 +1,27 @@
+{
+  "name": "rx-slack",
+  "version": "1.0.0",
+  "description": "RxJS for slack",
+  "main": "slackbot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robwormald/rx-slack.git"
+  },
+  "keywords": [
+    "rx",
+    "slack",
+    "rxjs"
+  ],
+  "author": "Rob Wormald <robwormald@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/robwormald/rx-slack/issues"
+  },
+  "homepage": "https://github.com/robwormald/rx-slack#readme",
+  "dependencies": {
+    "es6-shim": "^0.32.2"
+  }
+}
